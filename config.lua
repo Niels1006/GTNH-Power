@@ -15,7 +15,7 @@ return {
     -- MISC SETTINGS
     ----------------------
         -- Seconds between screen refreshes. 2 is standard
-        loopdelay = 0.1,
+        loopdelay = 0.5,
         -- Turns off the arrow underneath the meters
         ArrowOff = false,
         -- io value to size arrow against 

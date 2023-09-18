@@ -7,6 +7,8 @@
 -- For original:
 --     pastebin get dU5feqYz pwr.lua
 
+
+local table = require("table")
 local component = require("component")
 local computer = require("computer")
 local event = require("event")
@@ -91,9 +93,9 @@ function draw_legend()
 
     for loc = 0, 100, 10
     do
-        term.setCursor(offset + loc, visual_y_start + 13)
+        term.setCursor(offset + loc, visual_y_start + 15)
         term.write(loc)
-        term.setCursor(offset + loc, visual_y_start + 14)
+        term.setCursor(offset + loc, visual_y_start + 16)
         term.write("|")
     end
 end
@@ -170,27 +172,27 @@ function draw_direction(io)
     if is_neg == 1
     then
         gpu.setForeground(clr.RED)
-        term.setCursor(offset, visual_y_start + 17)
+        term.setCursor(offset, visual_y_start + 18)
         term.write(base_bar1)
-        term.setCursor(offset - 1, visual_y_start + 18)
+        term.setCursor(offset - 1, visual_y_start + 19)
         term.write(base_bar2)
-        term.setCursor(offset, visual_y_start + 19)
+        term.setCursor(offset, visual_y_start + 20)
         term.write(base_bar3)
         gpu.setForeground(fg_default)
     else
         gpu.setForeground(clr.GREEN)
-        term.setCursor(offset, visual_y_start + 17)
-        term.write(base_bar1)
         term.setCursor(offset, visual_y_start + 18)
-        term.write(base_bar2)
+        term.write(base_bar1)
         term.setCursor(offset, visual_y_start + 19)
+        term.write(base_bar2)
+        term.setCursor(offset, visual_y_start + 20)
         term.write(base_bar3)
         gpu.setForeground(fg_default)
     end
 end
 
 function draw_visuals(percent)
-  term.setCursor(offset, visual_y_start + 15)
+  term.setCursor(offset, visual_y_start + 16)
   for check = 0, 100, 1
   do
     if check <= percent
@@ -243,19 +245,19 @@ term.setCursor(ylogo, 1 + 18) term.write("         ░░             ░░    
 gpu.setForeground(clr.WHITE)
 term.setCursor(35, 22)     term.write("█▀█ █▀█ █░█░█ █▀▀ █▀█   █▀▀ █▀█ █▄░█ ▀█▀ █▀█ █▀█ █░░")
 term.setCursor(35, 23)     term.write("█▀▀ █▄█ ▀▄▀▄▀ ██▄ █▀▄   █▄▄ █▄█ █░▀█ ░█░ █▀▄ █▄█ █▄▄")
-os.sleep(3)
+os.sleep(0.1)
 
 
 
 -- General GUI settings
 offset = 10
-visual_y_start = 5
+visual_y_start = 4
 fg_default = clr.WHITE
 fg_color_max = clr.PURPLE
 eucolor = fg_default
 eucolorx = fg_default
 
-function DrawStaticScreen()
+function DrawStaticScreen(wirelessenergy_array)
     term.clear()
     gpu.setForeground(fg_default)
     term.setCursor(35, visual_y_start -2)    term.write("█▀█ █▀█ █░█░█ █▀▀ █▀█   █▀▀ █▀█ █▄░█ ▀█▀ █▀█ █▀█ █░░")
@@ -296,13 +298,23 @@ function DrawStaticScreen()
     term.setCursor(30, visual_y_start + 8)
     term.write("Wireless energy: ")
 
+    -- Draw wireless i/o
+    term.setCursor(30, visual_y_start + 9)
+    term.write("Wireless I/O: ")
+
+
+    -- Draw wireless tte
+    term.setCursor(30, visual_y_start + 10)
+    term.write("Time till empty: ")
+
+
 
     -- Draw Maintenance status
-    term.setCursor(30,visual_y_start + 10)
+    term.setCursor(30,visual_y_start + 12)
     term.write("Maintenance status:  ")
 
     -- Draw Generator Status
-    term.setCursor(30,visual_y_start + 11)
+    term.setCursor(30,visual_y_start + 13)
     term.write("Generators status:   ")
 
     -- Draw Pointline
@@ -411,9 +423,30 @@ function DrawDynamicScreen()
     gpu.setForeground(fg_default)
     
 
+    -- Draw Wireless energy i/o
+    eu_ar = get_wireless_average(wirelessenergy, wirelessenergy_array)
+
+    term.setCursor(30+21, visual_y_start + 9)
+    gpu.setForeground(eu_ar[3])
+    term.write(" " .. convert_value(eu_ar[1], "E")); eol();
+    gpu.setForeground(fg_default)
+
+
+    -- Draw wireless time till empty 
+    term.setCursor(30+21, visual_y_start + 10)
+    empty_time = ((wirelessenergy/eu_ar[1])/20)/3600
+    gpu.setForeground(fg_color_io)
+
+    if eu_ar[2] == "-" then
+      term.write("  -" .. (math.floor(empty_time*10)/10) .. "h"); eol();
+    else
+      term.write("  inf h"); eol();
+    end    
+    gpu.setForeground(fg_default)
+
 
     -- Draw Maintenance status
-    term.setCursor(30 + 21, visual_y_start + 10)
+    term.setCursor(30 + 21, visual_y_start + 12)
     if MStatus == "Working perfectly" then MColor = clr.GREEN else MColor = clr.RED end
     gpu.setForeground(MColor)
     if MColor == clr.RED then gpu.setBackground(clr.YELLOW) end
@@ -422,7 +455,7 @@ function DrawDynamicScreen()
     gpu.setBackground(clr.BLACK)
 
     -- Draw Generator Status
-    term.setCursor(30 + 21, visual_y_start + 11)
+    term.setCursor(30 + 21, visual_y_start + 13)
     gpu.setForeground(fg_default)
     term.write(" " .. statusRS); eol();
     gpu.setForeground(fg_default)
@@ -451,10 +484,37 @@ end
 event_id = event.listen("key_up", end_event_loop)
 
 
+function get_wireless_average(wirelessenergy, wirelessenergy_array)
+    table.insert(wirelessenergy_array_raw, 1, wirelessenergy)
+
+    if #wirelessenergy_array_raw > ar_length then
+        table.remove( wirelessenergy_array_raw, ar_length + 1)
+
+        diff = math.floor((wirelessenergy_array_raw[1] - wirelessenergy_array_raw[ar_length]) / (cfg.loopdelay*ar_length*20))
+
+        if diff < 0 then
+            return {-diff, "-", clr.RED}
+        else
+            return {diff, "+", clr.GREEN}
+        end
+    else
+        return 1
+    end
+
+end
+
+
+
+ar_length = 20
+-- local wirelessenergy_array = nil
+wirelessenergy_array_raw = {}
+for i=1,ar_length do
+    table.insert(wirelessenergy_array_raw, 1)
+end
 
 -- Init
 RS.init()
-DrawStaticScreen()
+DrawStaticScreen(wirelessenergy_array_raw)
 
 -- Loop
 while event_loop do
