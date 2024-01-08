@@ -9,7 +9,7 @@
 To install it, run
 
 ```bash
-wget -f https://raw.githubusercontent.com/Niels1006/GTNH-Power/main/installer.lua
+wget -f https://raw.githubusercontent.com/Niels1006/GTNH-Power/ceu/pwr.lua
 ```
 ```bash
 installer
