@@ -4,6 +4,7 @@
 -- V3 disable the average table and enable the new average in/out from v2.3 LSC
 -- V3.1 added Toggle functions for clr.Red100Off and ArrowOff
 -- V4 forked by NeroOneTrueKing to add wireless redstone support
+-- V5 added more features and added CEU support by Niels1006
 -- For original:
 --     pastebin get dU5feqYz pwr.lua
 
@@ -21,8 +22,8 @@ local clr = cfg.clr
 
 -- START OF CODE
 -- Find LSC
-for k, v in component.list("gt_machine") do
-	if component.invoke(k, "getName") == "multimachine.supercapacitor" then
+for k, v in component.list("") do
+	if v == "power_substation" then
 		msc = component.proxy(k)
 	end
 end
@@ -216,7 +217,7 @@ function parser(string)
         end
         return 0
     else
-        return 0
+        return "0"
     end
 end
 
@@ -326,24 +327,24 @@ function eol()
 end
 
 function DrawDynamicScreen()
-    local sensorInformation = msc.getSensorInformation()
+    --local sensorInformation = msc.getSensorInformation()
 
     -- Get information
-    local storedenergyinit = parser(sensorInformation[2])
-    local maxenergyinit = parser(sensorInformation[3])
+    local storedenergyinit = parser(msc.getStored())
+    local maxenergyinit = parser(msc.getCapacity())
 
-    local ioratein = parser(string.gsub(sensorInformation[7], "last 5 seconds", ""))
-    local iorateout = parser(string.gsub(sensorInformation[8], "last 5 seconds", ""))
-    local iorate = ioratein - iorateout
-    local strInfo = sensorInformation[9]
+    --local ioratein = parser(string.gsub(msc.getAverageIOLastSec(), "last 5 seconds", ""))
+    --local iorateout = parser(string.gsub(msc.getAverageIOLastSec(), "last 5 seconds", ""))
+    local iorate = msc.getAverageIOLastSec()
+    local strInfo = 123
 
-    local wirelessenergy = parser(sensorInformation[15])
-    local MStatus
+    --local wirelessenergy = parser(sensorInformation[15])
+    --[[ local MStatus
     if strInfo == nil then else
         y = string.find(strInfo, "§")
         z = string.len(strInfo)
         MStatus = string.sub(strInfo, (y+3), (z-3))
-    end
+    end ]]
     local percentenergy = storedenergyinit / maxenergyinit * 100
 
     local convstored = convert_value( storedenergyinit, "E" )
@@ -381,17 +382,17 @@ function DrawDynamicScreen()
     term.write(string.format(" %.5f %s", percentenergy, " %")); eol();
     gpu.setForeground(fg_default)
 
-    -- Draw Actual In
+    --[[ -- Draw Actual In
     term.setCursor(30 + 21, visual_y_start + 4)
     gpu.setForeground(clr.GREEN)
-    term.write(" " .. convert_value(ioratein, "A") .. " equal to " .. convert_value(ioratein, "P") .. " EU"); eol();
-    gpu.setForeground(fg_default)
+    term.write(" " .. convert_value(iorate, "A") .. " equal to " .. convert_value(iorate, "P") .. " EU"); eol();
+    gpu.setForeground(fg_default) ]]
 
-    -- Draw Actual Out
+    --[[ -- Draw Actual Out
     term.setCursor(30 + 21, visual_y_start + 5)
     gpu.setForeground(clr.RED)
-    term.write(convert_value(iorateout, "A") .. " equal to " .. convert_value(iorateout, "P") .. " EU"); eol();
-    gpu.setForeground(fg_default)
+    term.write(convert_value(iorate, "A") .. " equal to " .. convert_value(iorate, "P") .. " EU"); eol();
+    gpu.setForeground(fg_default) ]]
 
     -- Draw Actual Change in/out
     term.setCursor(30 + 21, visual_y_start + 6)
@@ -409,31 +410,31 @@ function DrawDynamicScreen()
     if iorate < 0 then
       term.write((math.floor(empty_time*10)/10) .. "h"); eol();
     else
-      full_time = ((maxenergyinit-storedenergyinit)/iorate)/72000
-      term.write(" "..math.floor(full_time) .. "h"); eol();
+      full_time = ((maxenergyinit-storedenergyinit)/iorate)/72000*100
+      term.write(" "..math.floor(full_time)/100 .. "h"); eol();
     end    
     gpu.setForeground(fg_default)
 
 
     -- Draw Wireless EU Status
 
-    term.setCursor(30+21, visual_y_start + 8)
+    --[[ term.setCursor(30+21, visual_y_start + 8)
     gpu.setForeground(clr.GREEN)
     term.write(" " .. convert_value(wirelessenergy, "E")); eol();
-    gpu.setForeground(fg_default)
+    gpu.setForeground(fg_default) ]]
     
 
     -- Draw Wireless energy i/o
-    eu_ar = get_wireless_average(wirelessenergy, wirelessenergy_array)
+    --[[ eu_ar = get_wireless_average(wirelessenergy, wirelessenergy_array)
 
     term.setCursor(30+21, visual_y_start + 9)
     gpu.setForeground(eu_ar[3])
     term.write(" " .. convert_value(eu_ar[1], "E")); eol();
-    gpu.setForeground(fg_default)
+    gpu.setForeground(fg_default) ]]
 
 
     -- Draw wireless time till empty 
-    term.setCursor(30+21, visual_y_start + 10)
+    --[[ term.setCursor(30+21, visual_y_start + 10)
     empty_time = ((wirelessenergy/eu_ar[1])/20)/3600
     gpu.setForeground(fg_color_io)
 
@@ -442,17 +443,17 @@ function DrawDynamicScreen()
     else
       term.write("  inf h"); eol();
     end    
-    gpu.setForeground(fg_default)
+    gpu.setForeground(fg_default) ]]
 
 
     -- Draw Maintenance status
-    term.setCursor(30 + 21, visual_y_start + 12)
+    --[[ term.setCursor(30 + 21, visual_y_start + 12)
     if MStatus == "Working perfectly" then MColor = clr.GREEN else MColor = clr.RED end
     gpu.setForeground(MColor)
     if MColor == clr.RED then gpu.setBackground(clr.YELLOW) end
     term.write(" " .. MStatus); eol();
     gpu.setForeground(fg_default)
-    gpu.setBackground(clr.BLACK)
+    gpu.setBackground(clr.BLACK) ]]
 
     -- Draw Generator Status
     term.setCursor(30 + 21, visual_y_start + 13)
