@@ -54,7 +54,7 @@ function toggle(percentenergy)
 end
 
 function nullfunc() end
-function nullstatus() return "RS Disabledddd" end
+function nullstatus() return "RS Disabled" end
 
 if cfg.RedstoneEnabled then
     return {

@@ -4,11 +4,11 @@ return {
     -- REDSTONE CONTROL
     ----------------------
         -- Redstone I/O connected to system for Generator enabling / Value true or false, default: false
-        RedstoneEnabled = true,
+        RedstoneEnabled = false,
     
         -- redstone turns on/off at these thresholds for each side:
-        sidegenON  = {[0]= nil,  nil,  nil,  80,   nil,   0.000001},
-        sidegenOFF = {[0]= nil,  nil,  nil,  99,   nil,   0.0001},
+        sidegenON  = {[0]= nil,  nil,  nil,  nil,   90,   60},
+        sidegenOFF = {[0]= nil,  nil,  nil,  nil,   99,   95},
         --              bottom   top  back front right  left
     
     ----------------------
@@ -19,7 +19,7 @@ return {
         -- Turns off the arrow underneath the meters
         ArrowOff = false,
         -- io value to size arrow against 
-        io_max_rate = 524000,
+        io_max_rate = 50000000,
     
     ----------------------
     -- COLORS
